@@ -1,0 +1,22 @@
+{
+  "name": "@braille-loaders/core",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./loader.schema.json": "./dist/loader.schema.json"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs && tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap false --outDir dist && cp src/schema/loader.schema.json dist/loader.schema.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

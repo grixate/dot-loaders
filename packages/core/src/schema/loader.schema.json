@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://braille-loaders.dev/schema/loader.schema.json",
+  "title": "LoaderConfigV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "loader"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "loader": {
+      "type": "string",
+      "minLength": 1
+    },
+    "renderer": {
+      "type": "string",
+      "enum": ["text", "svg-grid"]
+    },
+    "speed": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "paused": {
+      "type": "boolean"
+    },
+    "respectReducedMotion": {
+      "type": "boolean"
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gap": {
+          "type": "number",
+          "minimum": 0
+        },
+        "labelPosition": {
+          "type": "string",
+          "enum": ["left", "right", "top", "bottom"]
+        }
+      }
+    },
+    "duration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["loop", "time"]
+        },
+        "seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": ["mode"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": { "const": "time" }
+            }
+          },
+          "then": {
+            "required": ["seconds"]
+          }
+        }
+      ]
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "config": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "rendererOptions": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
