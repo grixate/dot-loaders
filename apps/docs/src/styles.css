@@ -339,6 +339,93 @@ input[type="range"] {
   line-height: 1.7;
 }
 
+.shadcn-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.showcase-card {
+  display: grid;
+  gap: 12px;
+}
+
+.showcase-panel {
+  min-height: 172px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.showcase-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #08070b;
+  font: inherit;
+}
+
+.showcase-stack {
+  position: relative;
+  align-items: stretch;
+}
+
+.showcase-surface {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 5, 8, 0.72);
+}
+
+.showcase-surface strong {
+  font-size: 1.4rem;
+}
+
+.showcase-surface p,
+.showcase-kicker {
+  margin: 0;
+  color: var(--muted);
+}
+
+.showcase-overlay {
+  position: absolute;
+  inset: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 7, 11, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.showcase-toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px;
+}
+
+.showcase-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.16);
+}
+
 .shadcn-code-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -522,6 +609,7 @@ input[type="range"] {
   .field-row,
   .composer-meta,
   .integration-grid,
+  .shadcn-visual-grid,
   .shadcn-code-grid {
     grid-template-columns: 1fr;
   }

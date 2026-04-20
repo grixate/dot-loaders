@@ -11,7 +11,7 @@ import {
   type LoaderDefinition,
   type LoaderKind
 } from "@braille-loaders/core";
-import { curatedLoaders, portParityTable } from "@braille-loaders/presets";
+import { curatedLoaders } from "@braille-loaders/presets";
 import { Loader, LoaderProvider } from "@braille-loaders/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -595,10 +595,74 @@ export function SyncCard({ syncing }: { syncing: boolean }) {
                 <p>Use tiny text or SVG presets in toolbars, command menus, inspectors, and toasts.</p>
               </article>
             </div>
-            <div className="shadcn-code-grid">
-              <pre>{shadcnSnippet}</pre>
-              <pre>{shadcnOverlaySnippet}</pre>
+            <div className="shadcn-visual-grid">
+              <article className="showcase-card">
+                <span className="mini-label">Button Example</span>
+                <div className="showcase-panel">
+                  <button type="button" className="showcase-button">
+                    <Loader
+                      loader="braille"
+                      renderer="text"
+                      speed={1}
+                      effects={[{ name: "glow", config: { color: "#ffffff", blur: 4, intensity: 8, spread: 12 } }]}
+                    />
+                    <span>Publishing</span>
+                  </button>
+                </div>
+              </article>
+              <article className="showcase-card">
+                <span className="mini-label">Card Overlay</span>
+                <div className="showcase-panel showcase-stack">
+                  <div className="showcase-surface">
+                    <span className="showcase-kicker">Workspace index</span>
+                    <strong>12 jobs ready</strong>
+                    <p>Background work stays mounted while the busy state sits above it.</p>
+                  </div>
+                  <div className="showcase-overlay">
+                    <Loader
+                      loader="scanline-grid"
+                      renderer="svg-grid"
+                      effects={[{ name: "label", config: { text: "Syncing records", animateDots: true } }]}
+                      rendererOptions={{ shape: "square", cellSize: 10, gap: 2 }}
+                    />
+                  </div>
+                </div>
+              </article>
+              <article className="showcase-card">
+                <span className="mini-label">Toolbar Status</span>
+                <div className="showcase-panel showcase-toolbar">
+                  <div className="showcase-chip">
+                    <Loader loader="line-spinner" renderer="text" speed={1.1} />
+                    <span>Deploying</span>
+                  </div>
+                  <div className="showcase-chip">
+                    <Loader
+                      loader="progress-dots"
+                      renderer="svg-grid"
+                      rendererOptions={{ shape: "circle", cellSize: 8, gap: 2 }}
+                    />
+                    <span>3 active</span>
+                  </div>
+                </div>
+              </article>
             </div>
+            <details className="collapsible-panel nested-collapsible">
+              <summary>
+                <span>
+                  <span className="eyebrow">Integration Code</span>
+                  <strong>Copy the ShadCN snippets</strong>
+                </span>
+                <span className="summary-meta">Show code</span>
+              </summary>
+              <div className="shadcn-code-grid">
+                <pre>{shadcnSnippet}</pre>
+                <pre>{shadcnOverlaySnippet}</pre>
+              </div>
+            </details>
+            <p className="composer-brief">
+              A runnable integration demo also lives in `apps/shadcn-demo`, but the docs should already make the usage
+              story obvious before anyone reads code.
+            </p>
           </section>
 
           <section className="panel controls-panel">
@@ -901,26 +965,6 @@ registerEffect({
             <pre>{definitionJson}</pre>
           </details>
 
-          <section className="panel migration-panel">
-            <div className="panel-header">
-              <p className="eyebrow">Migration</p>
-              <h2>Alias parity table</h2>
-            </div>
-            <div className="table">
-              <div className="table-head">
-                <span>Source</span>
-                <span>Canonical</span>
-                <span>Aliases</span>
-              </div>
-              {portParityTable.slice(0, 16).map((row) => (
-                <div key={`${row.sourceName}-${row.canonicalId}`} className="table-row">
-                  <span>{row.sourceName}</span>
-                  <span>{row.canonicalId}</span>
-                  <span>{row.aliases.join(", ") || "—"}</span>
-                </div>
-              ))}
-            </div>
-          </section>
         </main>
       </div>
     </LoaderProvider>
