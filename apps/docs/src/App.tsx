@@ -1,5 +1,5 @@
 import { curatedLoaders } from "@dot-loaders/presets";
-import { createEngine, brailleToGrid } from "@dot-loaders/core";
+import { createEngine, brailleToGrid, LOADER_SCHEMA_VERSION } from "@dot-loaders/core";
 import { Loader, LoaderProvider } from "@dot-loaders/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -8,7 +8,7 @@ function useFaviconLoader(loaderId: string) {
     const reducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const engine = createEngine({ loader: loaderId });
+    const engine = createEngine({ schemaVersion: LOADER_SCHEMA_VERSION, loader: loaderId });
     const size = 32;
     const canvas = document.createElement("canvas");
     canvas.width = size;
@@ -22,12 +22,12 @@ function useFaviconLoader(loaderId: string) {
       link.rel = "icon";
       document.head.appendChild(link);
     }
+    const iconLink = link;
 
     const start = performance.now();
-    let rafId = 0;
     let intervalId: number | null = null;
 
-    function draw(elapsedMs: number) {
+    const draw = (elapsedMs: number) => {
       const snapshot = engine.getSnapshot(elapsedMs);
       const grid = brailleToGrid(snapshot.frame);
       const rows = 4;
@@ -50,22 +50,18 @@ function useFaviconLoader(loaderId: string) {
           }
         }
       }
-      link!.href = canvas.toDataURL("image/png");
-    }
+      iconLink.href = canvas.toDataURL("image/png");
+    };
 
     if (reducedMotion) {
       draw(0);
     } else {
-      const tick = () => {
-        draw(performance.now() - start);
-      };
-      tick();
-      intervalId = window.setInterval(tick, 120);
+      draw(0);
+      intervalId = window.setInterval(() => draw(performance.now() - start), 120);
     }
 
     return () => {
       if (intervalId !== null) window.clearInterval(intervalId);
-      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [loaderId]);
 }
