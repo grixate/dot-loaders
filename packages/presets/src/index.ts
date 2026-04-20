@@ -88,6 +88,551 @@ const scanlineGenerator = defineLoader({
   }
 });
 
+const radarGenerator = defineLoader({
+  id: "radar",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 4;
+      const height = 4;
+      const path: Array<[number, number]> = [];
+      for (let x = 0; x < width; x += 1) path.push([x, 0]);
+      for (let y = 1; y < height; y += 1) path.push([width - 1, y]);
+      for (let x = width - 2; x >= 0; x -= 1) path.push([x, height - 1]);
+      for (let y = height - 2; y >= 1; y -= 1) path.push([0, y]);
+
+      return path.map(([x, y]) => {
+        const grid = context.makeGrid(height, width);
+        grid[y][x] = true;
+        return context.gridToBraille(grid);
+      });
+    }
+  },
+  intervalMs: 85,
+  meta: {
+    category: "scan",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "radar"
+  }
+});
+
+const radarWideGenerator = defineLoader({
+  id: "radar-wide",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 8;
+      const height = 4;
+      const path: Array<[number, number]> = [];
+      for (let x = 0; x < width; x += 1) path.push([x, 0]);
+      for (let y = 1; y < height; y += 1) path.push([width - 1, y]);
+      for (let x = width - 2; x >= 0; x -= 1) path.push([x, height - 1]);
+      for (let y = height - 2; y >= 1; y -= 1) path.push([0, y]);
+
+      return path.map(([x, y]) => {
+        const grid = context.makeGrid(height, width);
+        grid[y][x] = true;
+        return context.gridToBraille(grid);
+      });
+    }
+  },
+  intervalMs: 65,
+  aliases: ["radar2"],
+  meta: {
+    category: "scan",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "radar2"
+  }
+});
+
+const scanGenerator = defineLoader({
+  id: "scan",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 8;
+      const height = 4;
+      const frames: string[] = [];
+      for (let pos = -1; pos < width + 1; pos += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            if (x === pos || x === pos - 1) grid[y][x] = true;
+          }
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 70,
+  meta: {
+    category: "scan",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "scan"
+  }
+});
+
+const rainGenerator = defineLoader({
+  id: "rain",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 8;
+      const height = 4;
+      const totalFrames = 12;
+      const offsets = [0, 3, 1, 5, 2, 7, 4, 6];
+      const frames: string[] = [];
+      for (let f = 0; f < totalFrames; f += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let c = 0; c < width; c += 1) {
+          const row = (f + offsets[c]) % (height + 2);
+          if (row < height) grid[row][c] = true;
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 100,
+  meta: {
+    category: "scan",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "rain"
+  }
+});
+
+const pulseGenerator = defineLoader({
+  id: "pulse",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 6;
+      const height = 4;
+      const cx = width / 2 - 0.5;
+      const cy = height / 2 - 0.5;
+      const radii = [0.5, 1.2, 2, 3, 3.5];
+      const frames: string[] = [];
+      for (const r of radii) {
+        const grid = context.makeGrid(height, width);
+        for (let row = 0; row < height; row += 1) {
+          for (let col = 0; col < width; col += 1) {
+            const dist = Math.sqrt((col - cx) ** 2 + (row - cy) ** 2);
+            if (Math.abs(dist - r) < 0.9) grid[row][col] = true;
+          }
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 180,
+  meta: {
+    category: "pulse",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "pulse"
+  }
+});
+
+const snakeGenerator = defineLoader({
+  id: "snake",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 4;
+      const height = 4;
+      const path: Array<[number, number]> = [];
+      for (let r = 0; r < height; r += 1) {
+        if (r % 2 === 0) {
+          for (let c = 0; c < width; c += 1) path.push([r, c]);
+        } else {
+          for (let c = width - 1; c >= 0; c -= 1) path.push([r, c]);
+        }
+      }
+      const frames: string[] = [];
+      for (let i = 0; i < path.length; i += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let t = 0; t < 4; t += 1) {
+          const idx = (i - t + path.length) % path.length;
+          grid[path[idx][0]][path[idx][1]] = true;
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 80,
+  meta: {
+    category: "line",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "snake"
+  }
+});
+
+const sparkleGenerator = defineLoader({
+  id: "sparkle",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const patterns = [
+        [1,0,0,1,0,0,1,0, 0,0,1,0,0,1,0,0, 0,1,0,0,1,0,0,1, 1,0,0,0,0,1,0,0],
+        [0,1,0,0,1,0,0,1, 1,0,0,1,0,0,0,1, 0,0,0,1,0,1,0,0, 0,0,1,0,1,0,1,0],
+        [0,0,1,0,0,1,0,0, 0,1,0,0,0,0,1,0, 1,0,1,0,0,0,0,1, 0,1,0,1,0,0,0,1],
+        [1,0,0,0,0,0,1,1, 0,0,1,0,1,0,0,0, 0,0,0,0,1,0,1,0, 1,0,0,1,0,0,1,0],
+        [0,0,0,1,1,0,0,0, 0,1,0,0,0,1,0,1, 1,0,0,1,0,0,0,0, 0,1,0,0,0,1,0,1],
+        [0,1,1,0,0,0,0,1, 0,0,0,1,0,0,1,0, 0,1,0,0,0,1,0,0, 0,0,1,0,1,0,0,0]
+      ];
+      const width = 8;
+      const height = 4;
+      return patterns.map((pat) => {
+        const grid = context.makeGrid(height, width);
+        for (let r = 0; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) {
+            grid[r][c] = pat[r * width + c] === 1;
+          }
+        }
+        return context.gridToBraille(grid);
+      });
+    }
+  },
+  intervalMs: 150,
+  meta: {
+    category: "dots",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "sparkle"
+  }
+});
+
+const cascadeGenerator = defineLoader({
+  id: "cascade",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 8;
+      const height = 4;
+      const frames: string[] = [];
+      for (let offset = -2; offset < width + height; offset += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let r = 0; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) {
+            const diag = c + r;
+            if (diag === offset || diag === offset - 1) grid[r][c] = true;
+          }
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 60,
+  meta: {
+    category: "scan",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "cascade"
+  }
+});
+
+const columnsGenerator = defineLoader({
+  id: "columns",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 6;
+      const height = 4;
+      const frames: string[] = [];
+      for (let col = 0; col < width; col += 1) {
+        for (let fillTo = height - 1; fillTo >= 0; fillTo -= 1) {
+          const grid = context.makeGrid(height, width);
+          for (let pc = 0; pc < col; pc += 1) {
+            for (let r = 0; r < height; r += 1) grid[r][pc] = true;
+          }
+          for (let r = fillTo; r < height; r += 1) grid[r][col] = true;
+          frames.push(context.gridToBraille(grid));
+        }
+      }
+      const full = context.makeGrid(height, width);
+      for (let r = 0; r < height; r += 1) for (let c = 0; c < width; c += 1) full[r][c] = true;
+      frames.push(context.gridToBraille(full));
+      frames.push(context.gridToBraille(context.makeGrid(height, width)));
+      return frames;
+    }
+  },
+  intervalMs: 60,
+  meta: {
+    category: "line",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "columns"
+  }
+});
+
+const orbitGenerator = defineLoader({
+  id: "orbit",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 2;
+      const height = 4;
+      const path: Array<[number, number]> = [
+        [0, 0], [0, 1],
+        [1, 1], [2, 1], [3, 1],
+        [3, 0],
+        [2, 0], [1, 0]
+      ];
+      const frames: string[] = [];
+      for (let i = 0; i < path.length; i += 1) {
+        const grid = context.makeGrid(height, width);
+        grid[path[i][0]][path[i][1]] = true;
+        const tail = (i - 1 + path.length) % path.length;
+        grid[path[tail][0]][path[tail][1]] = true;
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 100,
+  meta: {
+    category: "orbit",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "orbit"
+  }
+});
+
+const breatheGenerator = defineLoader({
+  id: "breathe",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const stages: Array<Array<[number, number]>> = [
+        [],
+        [[1, 0]],
+        [[0, 1], [2, 0]],
+        [[0, 0], [1, 1], [3, 0]],
+        [[0, 0], [1, 1], [2, 0], [3, 1]],
+        [[0, 0], [0, 1], [1, 1], [2, 0], [3, 1]],
+        [[0, 0], [0, 1], [1, 0], [2, 1], [3, 0], [3, 1]],
+        [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [3, 0], [3, 1]],
+        [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1], [3, 0], [3, 1]]
+      ];
+      const sequence = [...stages, ...stages.slice().reverse().slice(1)];
+      return sequence.map((dots) => {
+        const grid = context.makeGrid(4, 2);
+        for (const [r, c] of dots) grid[r][c] = true;
+        return context.gridToBraille(grid);
+      });
+    }
+  },
+  intervalMs: 100,
+  meta: {
+    category: "pulse",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "breathe"
+  }
+});
+
+const waveRowsGenerator = defineLoader({
+  id: "wave-rows",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 8;
+      const height = 4;
+      const totalFrames = 16;
+      const frames: string[] = [];
+      for (let f = 0; f < totalFrames; f += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let c = 0; c < width; c += 1) {
+          const phase = f - c * 0.5;
+          const row = Math.round(((Math.sin(phase * 0.8) + 1) / 2) * (height - 1));
+          grid[row][c] = true;
+          if (row > 0) grid[row - 1][c] = (f + c) % 3 === 0;
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 90,
+  aliases: ["waverows"],
+  meta: {
+    category: "braille",
+    complexity: "high",
+    recommendedRenderer: "svg-grid",
+    sourceName: "waverows"
+  }
+});
+
+const checkerboardGenerator = defineLoader({
+  id: "checkerboard",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 6;
+      const height = 4;
+      const frames: string[] = [];
+      for (let phase = 0; phase < 4; phase += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let r = 0; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) {
+            grid[r][c] = phase < 2 ? (r + c + phase) % 2 === 0 : (r + c + phase) % 3 === 0;
+          }
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 250,
+  meta: {
+    category: "dots",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "checkerboard"
+  }
+});
+
+const helixGenerator = defineLoader({
+  id: "helix",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 8;
+      const height = 4;
+      const totalFrames = 16;
+      const frames: string[] = [];
+      for (let f = 0; f < totalFrames; f += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let c = 0; c < width; c += 1) {
+          const phase = (f + c) * (Math.PI / 4);
+          const y1 = Math.round(((Math.sin(phase) + 1) / 2) * (height - 1));
+          const y2 = Math.round(((Math.sin(phase + Math.PI) + 1) / 2) * (height - 1));
+          grid[y1][c] = true;
+          grid[y2][c] = true;
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      return frames;
+    }
+  },
+  intervalMs: 80,
+  meta: {
+    category: "braille",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "helix"
+  }
+});
+
+const fillSweepGenerator = defineLoader({
+  id: "fill-sweep",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 4;
+      const height = 4;
+      const frames: string[] = [];
+      for (let row = height - 1; row >= 0; row -= 1) {
+        const grid = context.makeGrid(height, width);
+        for (let r = row; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) grid[r][c] = true;
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      const full = context.makeGrid(height, width);
+      for (let r = 0; r < height; r += 1) for (let c = 0; c < width; c += 1) full[r][c] = true;
+      frames.push(context.gridToBraille(full));
+      frames.push(context.gridToBraille(full));
+      for (let row = 0; row < height; row += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let r = row + 1; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) grid[r][c] = true;
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      frames.push(context.gridToBraille(context.makeGrid(height, width)));
+      return frames;
+    }
+  },
+  intervalMs: 100,
+  aliases: ["fillsweep"],
+  meta: {
+    category: "pulse",
+    complexity: "low",
+    recommendedRenderer: "svg-grid",
+    sourceName: "fillsweep"
+  }
+});
+
+const diagSwipeGenerator = defineLoader({
+  id: "diagonal-swipe",
+  kind: "braille",
+  source: {
+    type: "generator",
+    generate(context: FrameGeneratorContext) {
+      const width = 4;
+      const height = 4;
+      const frames: string[] = [];
+      const maxDiag = width + height - 2;
+      for (let d = 0; d <= maxDiag; d += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let r = 0; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) {
+            if (r + c <= d) grid[r][c] = true;
+          }
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      const full = context.makeGrid(height, width);
+      for (let r = 0; r < height; r += 1) for (let c = 0; c < width; c += 1) full[r][c] = true;
+      frames.push(context.gridToBraille(full));
+      for (let d = 0; d <= maxDiag; d += 1) {
+        const grid = context.makeGrid(height, width);
+        for (let r = 0; r < height; r += 1) {
+          for (let c = 0; c < width; c += 1) {
+            if (r + c > d) grid[r][c] = true;
+          }
+        }
+        frames.push(context.gridToBraille(grid));
+      }
+      frames.push(context.gridToBraille(context.makeGrid(height, width)));
+      return frames;
+    }
+  },
+  intervalMs: 60,
+  aliases: ["diagswipe"],
+  meta: {
+    category: "scan",
+    complexity: "medium",
+    recommendedRenderer: "svg-grid",
+    sourceName: "diagswipe"
+  }
+});
+
 const lineSweepGenerator = defineLoader({
   id: "line-sweep",
   kind: "braille",
@@ -135,86 +680,31 @@ export const curatedLoaders: LoaderDefinition[] = [
     recommendedRenderer: "svg-grid",
     sourceName: "dna"
   }, ["dna"]),
-  brailleLoader("radar", ["⠁⠀", "⠈⠀", "⠀⠁", "⠀⠈", "⠀⠐", "⠀⠠", "⠀⢀", "⠀⡀", "⠀⠄", "⠀⠂", "⠂⠀", "⠄⠀", "⡀⠀", "⢀⠀", "⠠⠀", "⠐⠀"], 85, {
-    category: "scan",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "radar"
-  }),
-  brailleLoader("radar-wide", ["⠀⠁⠀⠀", "⠀⠈⠁⠀", "⠀⠀⠈⠀", "⠀⠀⠐⠀", "⠀⠀⠠⠀", "⠀⠀⢀⠀", "⠀⠀⡀⠀", "⠀⠀⠄⠀", "⠀⠀⠂⠀", "⠀⠂⠀⠀", "⠀⠄⠀⠀", "⠀⡀⠀⠀", "⠀⢀⠀⠀", "⠀⠠⠀⠀", "⠀⠐⠀⠀", "⠀⠈⠀⠀"], 85, {
-    category: "scan",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "radar2"
-  }, ["radar2"]),
-  brailleLoader("scan", ["⠀⠀⠀⠀", "⡇⠀⠀⠀", "⣿⠀⠀⠀", "⢸⡇⠀⠀", "⠀⣿⠀⠀", "⠀⢸⡇⠀", "⠀⠀⣿⠀", "⠀⠀⢸⡇", "⠀⠀⠀⣿", "⠀⠀⠀⢸"], 80, {
-    category: "scan",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "scan"
-  }),
+  radarGenerator,
+  radarWideGenerator,
+  scanGenerator,
   scanlineGenerator,
   lineSweepGenerator,
-  brailleLoader("rain", ["⢁⠂⠔⠈", "⠂⠌⡠⠐", "⠄⡐⢀⠡", "⡈⠠⠀⢂", "⠐⢀⠁⠄", "⠠⠁⠊⡀"], 95, {
-    category: "scan",
-    complexity: "medium",
-    recommendedRenderer: "text",
-    sourceName: "rain"
-  }),
+  rainGenerator,
   brailleLoader("sand", ["⠁", "⠂", "⠄", "⡀", "⡈", "⡐", "⡠", "⣀", "⣁", "⣂", "⣄", "⣌", "⣔", "⣤", "⣥", "⣦", "⣮", "⣶", "⣷", "⣿", "⡿", "⠿", "⢟", "⠟", "⡛", "⠛", "⠫", "⢋", "⠋", "⠍", "⡉", "⠉", "⠑", "⠡", "⢁"], 70, {
     category: "dots",
     complexity: "high",
     recommendedRenderer: "text",
     sourceName: "sand"
   }),
-  brailleLoader("sparkle", ["⡡⠊⢔⠡", "⠊⡰⡡⡘", "⢔⢅⠈⢢", "⡁⢂⠆⡍", "⢔⠨⢑⢐", "⠨⡑⡠⠊"], 90, {
-    category: "dots",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "sparkle"
-  }),
-  brailleLoader("checkerboard", ["⢕⢕⢕", "⡪⡪⡪", "⢊⠔⡡", "⡡⢊⠔"], 120, {
-    category: "dots",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "checkerboard"
-  }),
-  brailleLoader("helix", ["⢌⣉⢎⣉", "⣉⡱⣉⡱", "⣉⢎⣉⢎", "⡱⣉⡱⣉"], 90, {
-    category: "braille",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "helix"
-  }),
-  brailleLoader("wave-rows", ["⠖⠉⠉⠑", "⡠⠖⠉⠉", "⣠⡠⠖⠉", "⣄⣠⡠⠖", "⠢⣄⣠⡠", "⠙⠢⣄⣠", "⠉⠙⠢⣄", "⠊⠉⠙⠢"], 95, {
-    category: "braille",
-    complexity: "high",
-    recommendedRenderer: "text",
-    sourceName: "waverows"
-  }, ["waverows"]),
-  brailleLoader("snake", ["⣁⡀", "⣉⠀", "⡉⠁", "⠉⠉", "⠈⠙", "⠀⠛", "⠐⠚", "⠒⠒", "⠖⠂", "⠶⠀", "⠦⠄", "⠤⠤", "⠠⢤", "⠀⣤", "⢀⣠", "⣀⣀"], 80, {
-    category: "line",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "snake"
-  }),
-  brailleLoader("orbit", ["⠃", "⠉", "⠘", "⠰", "⢠", "⣀", "⡄", "⠆"], 80, {
-    category: "orbit",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "orbit"
-  }),
+  sparkleGenerator,
+  checkerboardGenerator,
+  helixGenerator,
+  waveRowsGenerator,
+  snakeGenerator,
+  orbitGenerator,
   brailleLoader("bounce", ["⠁", "⠂", "⠄", "⠂"], 120, {
     category: "dots",
     complexity: "low",
     recommendedRenderer: "text",
     sourceName: "bounce"
   }),
-  brailleLoader("breathe", ["⠀", "⠂", "⠌", "⡑", "⢕", "⢝", "⣫", "⣟", "⣿", "⣟", "⣫", "⢝", "⢕", "⡑", "⠌", "⠂", "⠀"], 85, {
-    category: "pulse",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "breathe"
-  }),
+  breatheGenerator,
   brailleLoader("spiral", ["⠁⠀⠀⠀", "⠉⠀⠀⠀", "⠋⠁⠀⠀", "⠋⠉⠀⠀", "⠋⠋⠁⠀", "⠋⠋⠉⠀", "⠋⠋⠋⠁", "⠋⠋⠋⠉", "⠋⠋⠋⠋", "⣿⠋⠋⠋", "⣿⣿⠋⠋", "⣿⣿⣿⠋", "⣿⣿⣿⣿", "⣿⣿⣿⣾", "⣿⣿⣾⣴", "⣿⣾⣴⣤", "⣾⣴⣤⣀", "⣴⣤⣀⠀", "⣤⣀⠀⠀", "⣀⠀⠀⠀", "⠀⠀⠀⠀"], 75, {
     category: "orbit",
     complexity: "high",
@@ -227,30 +717,10 @@ export const curatedLoaders: LoaderDefinition[] = [
     recommendedRenderer: "svg-grid",
     sourceName: "vortex"
   }),
-  brailleLoader("cascade", ["⠀⠀⠀⠀", "⠀⠀⠀⠀", "⠁⠀⠀⠀", "⠋⠀⠀⠀", "⠞⠁⠀⠀", "⡴⠋⠀⠀", "⣠⠞⠁⠀", "⢀⡴⠋⠀", "⠀⣠⠞⠁", "⠀⢀⡴⠋", "⠀⠀⣠⠞", "⠀⠀⢀⡴", "⠀⠀⠀⣠", "⠀⠀⠀⢀"], 80, {
-    category: "scan",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "cascade"
-  }),
-  brailleLoader("columns", ["⡀⠀⠀", "⡄⠀⠀", "⡆⠀⠀", "⡇⠀⠀", "⣇⠀⠀", "⣧⠀⠀", "⣷⠀⠀", "⣿⠀⠀", "⣿⡀⠀", "⣿⡄⠀", "⣿⡆⠀", "⣿⡇⠀", "⣿⣇⠀", "⣿⣧⠀", "⣿⣷⠀", "⣿⣿⠀", "⣿⣿⡀", "⣿⣿⡄", "⣿⣿⡆", "⣿⣿⡇", "⣿⣿⣇", "⣿⣿⣧", "⣿⣿⣷", "⣿⣿⣿", "⠀⠀⠀"], 70, {
-    category: "line",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "columns"
-  }),
-  brailleLoader("fill-sweep", ["⣀⣀", "⣤⣤", "⣶⣶", "⣿⣿", "⣿⣿", "⣿⣿", "⣶⣶", "⣤⣤", "⣀⣀", "⠀⠀", "⠀⠀"], 90, {
-    category: "pulse",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "fillsweep"
-  }, ["fillsweep"]),
-  brailleLoader("diagonal-swipe", ["⠁⠀", "⠋⠀", "⠟⠁", "⡿⠋", "⣿⠟", "⣿⡿", "⣿⣿", "⣿⣿", "⣾⣿", "⣴⣿", "⣠⣾", "⢀⣴", "⠀⣠", "⠀⢀", "⠀⠀"], 80, {
-    category: "scan",
-    complexity: "medium",
-    recommendedRenderer: "svg-grid",
-    sourceName: "diagswipe"
-  }, ["diagswipe"]),
+  cascadeGenerator,
+  columnsGenerator,
+  fillSweepGenerator,
+  diagSwipeGenerator,
   brailleLoader("pendulum", ["⠁⠀⠀", "⠂⠀⠀", "⠄⠀⠀", "⠆⠀⠀", "⠇⠀⠀", "⠏⠀⠀", "⠟⠀⠀", "⠿⠀⠀", "⠀⠿⠀", "⠀⠀⠿", "⠀⠀⠟", "⠀⠀⠏", "⠀⠀⠇", "⠀⠀⠆", "⠀⠀⠄", "⠀⠀⠂"], 80, {
     category: "orbit",
     complexity: "medium",
@@ -287,12 +757,7 @@ export const curatedLoaders: LoaderDefinition[] = [
     recommendedRenderer: "svg-grid",
     sourceName: "typewriter"
   }),
-  brailleLoader("pulse", ["⠀⠶⠀", "⠰⣿⠆", "⢾⣉⡷", "⣏⠀⣹", "⡁⠀⢈"], 95, {
-    category: "pulse",
-    complexity: "low",
-    recommendedRenderer: "svg-grid",
-    sourceName: "pulse"
-  }),
+  pulseGenerator,
   brailleLoader("pulse-soft", ["⠀⠤⠀", "⠠⠶⠄", "⠶⣿⠶", "⢾⣉⡷", "⠶⣿⠶", "⠄⠶⠠", "⠀⠤⠀"], 95, {
     category: "pulse",
     complexity: "low",

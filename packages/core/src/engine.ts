@@ -45,7 +45,7 @@ function buildBaseRenderModel(frame: string, context: EffectContext): RenderMode
     renderer: context.config.renderer,
     text: frame,
     style: {
-      color: "#f8fafc",
+      color: "currentColor",
       lineHeight: 1,
       whiteSpace: frame.includes("\n") ? "pre" : "pre-wrap",
       direction: "ltr",
@@ -61,7 +61,7 @@ function buildBaseRenderModel(frame: string, context: EffectContext): RenderMode
       gap: context.config.layout.gap
     },
     gridStyle: {
-      color: "#f8fafc"
+      color: "currentColor"
     },
     cellStyle: {
       fill: "currentColor"
